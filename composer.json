@@ -1,0 +1,8 @@
+{
+    "name": "woodwing/ww_enterprise",
+    "description": "WoodWing Enterprise",
+    "type": "drupal-module",
+    "require": {
+        "drupal/xmlrpc": "1.*"
+    }
+}
