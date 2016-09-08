@@ -1,4 +1,5 @@
 <?php
+use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Form\OptGroup;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Session\AccountProxyInterface;
@@ -447,7 +448,7 @@ function getEnterpriseNodeFields( $contentType )
 		if ( $field instanceof Drupal\field\Entity\FieldConfig ) {
 			$nodeProperties = initializeDataDefinition( $contentType );
 			$nodeProperties['name'] = $field->getName();
-			$nodeProperties['type'] = $field->getType();
+			$nodeProperties['type'] = $field->getType() == 'link' ? 'string' : $field->getType();
 			$nodeProperties['widget_type'] = ( isset( $formComponents[$key]['type'] ) )
 				? $formComponents[$key]['type'] :
 				'';
@@ -1161,6 +1162,15 @@ function mapNodeValues( $node, $formValues, $previewMode )
 						break;
 					case 'datetime':
 						$val = $values[0];
+						$node->$field_machine_name = $val;
+						break;
+					case 'link':
+						$val = $values[0];
+						if (!UrlHelper::isValid($val, TRUE)) {
+							throw new Exception(t('Field @field has an invalid url.', [
+								'@field' => $node->$field_machine_name->getFieldDefinition()->label()
+							]));
+						}
 						$node->$field_machine_name = $val;
 						break;
 					case 'list_float':
