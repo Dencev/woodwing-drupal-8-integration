@@ -607,6 +607,12 @@ function getEnterpriseNodeFields( $contentType )
 				$nodeProperties['default_value'] = (isset( $nodeProperties['default_value'][0]['value'] ))
 					? $nodeProperties['default_value'][0]['value']
 					: '';
+				if ($field->getType() == 'link') {
+					$nodeProperties['max_length'] = 255;
+					$nodeProperties['default_value'] = (isset( $nodeProperties['default_value'][0]['url'] ))
+						? $nodeProperties['default_value'][0]['url']
+						: '';
+				}
 			}
 
 			if ( $nodeProperties['widget_type'] == 'file_generic' ) {
