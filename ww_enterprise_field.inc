@@ -1,6 +1,7 @@
 <?php
 use Drupal\Core\Entity\Element\EntityAutocomplete;
 use Drupal\Core\Entity\EntityReferenceSelection\SelectionWithAutocreateInterface;
+use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Form\OptGroup;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Session\AccountProxyInterface;
@@ -450,7 +451,7 @@ function getEnterpriseNodeFields( $contentType )
 		if ( $field instanceof Drupal\field\Entity\FieldConfig ) {
 			$nodeProperties = initializeDataDefinition( $contentType );
 			$nodeProperties['name'] = $field->getName();
-			$nodeProperties['type'] = $field->getType();
+			$nodeProperties['type'] = $field->getType() == 'link' ? 'string' : $field->getType();
 			$nodeProperties['widget_type'] = ( isset( $formComponents[$key]['type'] ) )
 				? $formComponents[$key]['type'] :
 				'';
@@ -618,6 +619,12 @@ function getEnterpriseNodeFields( $contentType )
 				$nodeProperties['default_value'] = (isset( $nodeProperties['default_value'][0]['value'] ))
 					? $nodeProperties['default_value'][0]['value']
 					: '';
+				if ($field->getType() == 'link') {
+					$nodeProperties['max_length'] = 255;
+					$nodeProperties['default_value'] = (isset($nodeProperties['default_value'][0]['url']))
+						? $nodeProperties['default_value'][0]['url']
+						: '';
+				}
 			}
 
 			if ( $nodeProperties['widget_type'] == 'file_generic' ) {
@@ -1183,6 +1190,16 @@ function mapNodeValues(NodeInterface $node, $formValues, $previewMode )
 						break;
 					case 'datetime':
 						$val = $values[0];
+						$node->$field_machine_name = $val;
+						break;
+					case 'link':
+						$val = $values[0];
+						if (!empty($val) && !UrlHelper::isValid($val, TRUE)) {
+							throw new Exception(t('Field @field has an invalid url.', [
+								'@field' => $node->$field_machine_name->getFieldDefinition()
+									->label()
+							]));
+						}
 						$node->$field_machine_name = $val;
 						break;
 					case 'list_float':
